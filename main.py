@@ -5,7 +5,7 @@ from astrbot.api.event import filter, AstrMessageEvent
 from astrbot.api.star import Context, Star, register
 from astrbot.api import logger
 
-@register("astrbot_plugin_idiom", "idiom", "成语接龙插件", "1.0.0")
+@register("astrbot_plugin_idiom", "idiom", "成语接龙插件", "1.1.0")
 class idiomPlugin(Star):
     def __init__(self, context: Context):
         super().__init__(context)
@@ -78,7 +78,11 @@ class idiomPlugin(Star):
             bot_choice = random.choice(possible_next)
             game['used_idioms'].add(bot_choice)
             game['last_idiom'] = bot_choice
-            yield event.plain_result(f"✅ {user_idiom} → {bot_choice}")
+            if not any(idiom for idiom in self.idioms if idiom[0] == bot_choice[-1] and idiom not in game['used_idioms']):
+                yield event.plain_result(f"✅ {user_idiom} → {bot_choice}\n🎉 你输了！{bot_choice}是最后一个可用成语，游戏结束。")
+                del self.games[session_id]
+            else:
+                yield event.plain_result(f"✅ {user_idiom} → {bot_choice}")
         else:
             yield event.plain_result(f"🎉 {user_idiom} 是最后一个可用成语，你赢了！游戏结束。")
             del self.games[session_id]
